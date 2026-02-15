@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=My Product
+Comment=A desk-squat-tracker application
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/desk-squat-tracker %u
+Terminal=false
+Type=Application
+Icon=desk-squat-tracker
+Categories=Utility;
+StartupWMClass=desk-squat-tracker
+
+ 
