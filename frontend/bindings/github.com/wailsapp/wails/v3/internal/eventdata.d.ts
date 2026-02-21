@@ -5,9 +5,15 @@
 // @ts-ignore: Unused imports
 import type { Events } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import type * as app$0 from "../../../../kikils/desk-squat-tracker/internal/infrastructure/app/models.js";
+
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
+            "face": app$0.FaceViewModel | null;
+            "squat": number;
             "time": string;
         }
     }

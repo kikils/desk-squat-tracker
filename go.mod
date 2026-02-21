@@ -1,8 +1,13 @@
-module changeme
+module github.com/kikils/desk-squat-tracker
 
 go 1.25
 
-require github.com/wailsapp/wails/v3 v3.0.0-alpha.71
+require (
+	github.com/esimov/pigo v1.4.6
+	github.com/wailsapp/wails/v3 v3.0.0-alpha.71
+)
+
+require go.uber.org/mock v0.6.0
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
@@ -146,6 +151,7 @@ require (
 	golang.org/x/term v0.39.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
+	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -153,4 +159,7 @@ require (
 	mvdan.cc/sh/v3 v3.12.0 // indirect
 )
 
-tool github.com/wailsapp/wails/v3/cmd/wails3
+tool (
+	github.com/wailsapp/wails/v3/cmd/wails3
+	go.uber.org/mock/mockgen
+)

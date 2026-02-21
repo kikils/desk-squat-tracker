@@ -6,9 +6,18 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as app$0 from "../../../../kikils/desk-squat-tracker/internal/infrastructure/app/models.js";
+
 function configure() {
     Object.freeze(Object.assign($Create.Events, {
+        "face": $$createType1,
     }));
 }
+
+// Private type creation functions
+const $$createType0 = app$0.FaceViewModel.createFrom;
+const $$createType1 = $Create.Nullable($$createType0);
 
 configure();
