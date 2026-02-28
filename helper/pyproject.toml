@@ -1,0 +1,12 @@
+[project]
+name = "helper"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "mediapipe>=0.10.14",
+    "opencv-python-headless>=4.13.0.92",
+]
+
+[tool.uv]
+required-environments = ["sys_platform == 'darwin' and platform_machine == 'x86_64'"]

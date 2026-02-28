@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -17,7 +18,7 @@ type WatchSquatOutput struct {
 }
 
 type WatchSquatInputPort interface {
-	Execute(frame []byte, t time.Time) (*WatchSquatOutput, error)
+	Execute(ctx context.Context, frame []byte, t time.Time) (*WatchSquatOutput, error)
 }
 
 type WatchSquatInteractor struct {
@@ -34,8 +35,8 @@ func NewWatchSquatUsecase(faceRepository repository.FaceRepository, judgementRep
 	}
 }
 
-func (i *WatchSquatInteractor) Execute(frame []byte, t time.Time) (*WatchSquatOutput, error) {
-	face, err := i.FaceRepository.Detect(frame, t)
+func (i *WatchSquatInteractor) Execute(ctx context.Context, frame []byte, t time.Time) (*WatchSquatOutput, error) {
+	face, err := i.FaceRepository.Detect(ctx, frame, t)
 	if err != nil {
 		if errors.Is(err, errors.ErrNotFound) {
 			return &WatchSquatOutput{}, nil

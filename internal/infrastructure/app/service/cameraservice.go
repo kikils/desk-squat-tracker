@@ -1,17 +1,26 @@
 package service
 
 import (
+	"context"
 	"encoding/base64"
 	_ "image/jpeg"
 	"strings"
 	"time"
 
 	"github.com/kikils/desk-squat-tracker/internal/usecase"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type CameraService struct {
 	InputPort usecase.WatchSquatInputPort
 	OnResult  func(*usecase.WatchSquatOutput)
+
+	ctx context.Context
+}
+
+func (c *CameraService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
+	c.ctx = ctx
+	return nil
 }
 
 func (c *CameraService) ReceiveFrame(frameBase64 string) error {
@@ -24,7 +33,7 @@ func (c *CameraService) ReceiveFrame(frameBase64 string) error {
 		return err
 	}
 
-	out, err := c.InputPort.Execute(decoded, time.Now())
+	out, err := c.InputPort.Execute(c.ctx, decoded, time.Now())
 	if err != nil {
 		return err
 	}

@@ -25,7 +25,7 @@ func Run(assets fs.FS, iconBytes []byte) error {
 	// 'Bind' is a list of Go struct instances. The frontend has access to the methods of these instances.
 	// 'Mac' options tailor the application when running an macOS.
 
-	faceRepository, err := detect.NewFaceRepository()
+	faceRepository, err := detect.NewMediaPipeFaceRepository()
 	if err != nil {
 		return err
 	}
@@ -85,6 +85,10 @@ func Run(assets fs.FS, iconBytes []byte) error {
 			time.Sleep(time.Second)
 		}
 	}()
+
+	if err := detect.StartFaceDetectServer(app.Context()); err != nil {
+		return err
+	}
 
 	// Run the application. This blocks until the application has been exited.
 	return app.Run()
