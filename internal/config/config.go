@@ -9,6 +9,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+const AppName = "desk-squat-tracker"
+
 var (
 	conf Config
 	once sync.Once

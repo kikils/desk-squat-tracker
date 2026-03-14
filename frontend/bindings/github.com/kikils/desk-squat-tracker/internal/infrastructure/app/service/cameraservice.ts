@@ -5,6 +5,30 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
-export function ReceiveFrame(frameBase64: string): $CancellablePromise<void> {
-    return $Call.ByID(1851961695, frameBase64);
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
+/**
+ * ListCameras は利用可能なカメラ一覧を返す。
+ */
+export function ListCameras(): $CancellablePromise<$models.CameraDevice[]> {
+    return $Call.ByID(3981206455).then(($result: any) => {
+        return $$createType1($result);
+    });
 }
+
+/**
+ * StartCapture は指定したデバイスインデックスでキャプチャを開始する。macOS では AVFoundation で選択。
+ */
+export function StartCapture(deviceIndex: number): $CancellablePromise<void> {
+    return $Call.ByID(3412175283, deviceIndex);
+}
+
+export function StopCapture(): $CancellablePromise<void> {
+    return $Call.ByID(108944997);
+}
+
+// Private type creation functions
+const $$createType0 = $models.CameraDevice.createFrom;
+const $$createType1 = $Create.Array($$createType0);

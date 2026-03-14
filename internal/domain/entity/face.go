@@ -17,3 +17,8 @@ type Faces []*Face
 func (m *Face) CenterY() int {
 	return m.Y + m.Height/2
 }
+
+// TopY は顔の上端の Y 座標（判定用に顔の上の真ん中を使う）
+func (m *Face) TopY() int {
+	return m.Y
+}

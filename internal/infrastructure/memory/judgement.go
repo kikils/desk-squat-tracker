@@ -3,6 +3,7 @@ package memory
 import (
 	"sync"
 
+	"cloud.google.com/go/civil"
 	"github.com/kikils/desk-squat-tracker/internal/domain/entity"
 	"github.com/kikils/desk-squat-tracker/internal/domain/repository"
 	"github.com/kikils/desk-squat-tracker/internal/errors"
@@ -33,4 +34,16 @@ func (r *JudgementRepository) GetLast() (*entity.Judgement, error) {
 		return nil, errors.ErrNotFound.Errorf("not found last judgement")
 	}
 	return r.judgements[len(r.judgements)-1], nil
+}
+
+func (r *JudgementRepository) CountRepsByDate(date civil.Date) (int, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	count := 0
+	for _, judgement := range r.judgements {
+		if judgement.Date() == date && judgement.IsRepCompleted {
+			count++
+		}
+	}
+	return count, nil
 }

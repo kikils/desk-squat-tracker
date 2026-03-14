@@ -2,10 +2,7 @@ module github.com/kikils/desk-squat-tracker
 
 go 1.25
 
-require (
-	github.com/esimov/pigo v1.4.6
-	github.com/wailsapp/wails/v3 v3.0.0-alpha.71
-)
+require github.com/wailsapp/wails/v3 v3.0.0-alpha.71
 
 require go.uber.org/mock v0.6.0
 
@@ -14,6 +11,7 @@ require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	atomicgo.dev/schedule v0.1.0 // indirect
+	cloud.google.com/go v0.123.0
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect

@@ -13,16 +13,25 @@ type SquatJudger interface {
 type squatJudgerImpl struct {
 	FaceRepository      repository.FaceRepository
 	JudgementRepository repository.JudgementRepository
+	SettingRepository   repository.SettingRepository
 }
 
-func NewSquatJudger(faceRepository repository.FaceRepository, judgementRepository repository.JudgementRepository) SquatJudger {
+func NewSquatJudger(faceRepository repository.FaceRepository, judgementRepository repository.JudgementRepository, settingRepository repository.SettingRepository) SquatJudger {
 	return &squatJudgerImpl{
 		FaceRepository:      faceRepository,
 		JudgementRepository: judgementRepository,
+		SettingRepository:   settingRepository,
 	}
 }
 
 func (s *squatJudgerImpl) Judge(face *entity.Face) (*entity.Judgement, error) {
+	setting, err := s.SettingRepository.Get()
+	if err != nil {
+		return nil, err
+	}
+	topRatio := setting.TopRatio
+	bottomRatio := setting.BottomRatio
+
 	last, err := s.JudgementRepository.GetLast()
 	if err != nil && !errors.Is(err, errors.ErrNotFound) {
 		return nil, err
@@ -32,16 +41,16 @@ func (s *squatJudgerImpl) Judge(face *entity.Face) (*entity.Judgement, error) {
 		prevState = last.State
 	}
 
-	// 顔の Y 位置（フレーム全体に対する比率）を算出
-	centerY := face.CenterY()
-	ratio := float64(centerY) / float64(face.FrameHeight)
+	// 顔の上端の Y 位置（フレーム全体に対する比率）を算出
+	topY := face.TopY()
+	ratio := float64(topY) / float64(face.FrameHeight)
 
 	judgement := entity.NewJudgement(face)
 
 	switch prevState {
 	case entity.DetectStateUnknown, entity.DetectStateStanding:
 		// 立位 or 未判定状態から、一定以上下がったら「しゃがみ始め」
-		if ratio >= entity.DefaultTopRatio {
+		if ratio >= topRatio {
 			judgement.State = entity.DetectStateGoingDown
 		} else {
 			judgement.State = entity.DetectStateStanding
@@ -49,9 +58,9 @@ func (s *squatJudgerImpl) Judge(face *entity.Face) (*entity.Judgement, error) {
 
 	case entity.DetectStateGoingDown:
 		// さらに下がって十分な深さになったらボトム
-		if ratio >= entity.DefaultTopRatio {
+		if ratio >= topRatio {
 			judgement.State = entity.DetectStateBottom
-		} else if ratio <= entity.DefaultBottomRatio {
+		} else if ratio <= bottomRatio {
 			// 途中でまた上がり過ぎた場合は立位に戻す
 			judgement.State = entity.DetectStateStanding
 		} else {
@@ -60,7 +69,7 @@ func (s *squatJudgerImpl) Judge(face *entity.Face) (*entity.Judgement, error) {
 
 	case entity.DetectStateBottom:
 		// ボトムから上方向に戻り始めたら「立ち上がり」
-		if ratio <= entity.DefaultBottomRatio {
+		if ratio <= bottomRatio {
 			judgement.State = entity.DetectStateGoingUp
 		} else {
 			judgement.State = entity.DetectStateBottom
@@ -68,10 +77,10 @@ func (s *squatJudgerImpl) Judge(face *entity.Face) (*entity.Judgement, error) {
 
 	case entity.DetectStateGoingUp:
 		// 十分に上がりきったら「立位」へ → 1 rep 完了
-		if ratio <= entity.DefaultBottomRatio {
+		if ratio <= bottomRatio {
 			judgement.State = entity.DetectStateStanding
 			judgement.IsRepCompleted = true
-		} else if ratio >= entity.DefaultTopRatio {
+		} else if ratio >= topRatio {
 			// 再度下がり始めた場合は再度「しゃがみ始め」
 			judgement.State = entity.DetectStateGoingDown
 		} else {

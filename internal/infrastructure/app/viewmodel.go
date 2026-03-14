@@ -35,7 +35,7 @@ func FaceViewModelFrom(out *usecase.WatchSquatOutput) *FaceViewModel {
 	judgement := out.Judgement
 	ratio := 0.0
 	if face.FrameHeight > 0 {
-		ratio = float64(face.CenterY()) / float64(face.FrameHeight)
+		ratio = float64(face.TopY()) / float64(face.FrameHeight)
 	}
 	return &FaceViewModel{
 		X:            face.X,

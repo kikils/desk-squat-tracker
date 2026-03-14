@@ -11,11 +11,14 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-//go:embed all:assets/icon.svg
-var icon []byte
+//go:embed assets/standup.png
+var iconStandup []byte
+
+//go:embed assets/squat.png
+var iconSquat []byte
 
 func main() {
-	if err := app.Run(assets, icon); err != nil {
+	if err := app.Run(assets, iconStandup, iconSquat); err != nil {
 		log.Fatal(err)
 	}
 }

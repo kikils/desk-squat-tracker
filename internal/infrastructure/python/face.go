@@ -1,4 +1,4 @@
-package detect
+package python
 
 import (
 	"bytes"
@@ -18,26 +18,45 @@ import (
 )
 
 func StartFaceDetectServer(ctx context.Context) error {
-	var cmd *exec.Cmd
-	// FIX: ビルド時に実行できるようにする
-	if config.Get().FaceDetectServer.Debug {
-		cmd = exec.CommandContext(ctx, "uv", "run", config.Get().FaceDetectServer.ScriptName, "--serve", "--port", strconv.Itoa(config.Get().FaceDetectServer.ServerPort))
-		cmd.Dir = config.Get().FaceDetectServer.ScriptBasePath
+	cfg := config.Get().FaceDetectServer
+	if !cfg.Debug {
+		for i := 0; i < 10; i++ {
+			resp, err := http.Get(cfg.ServerURL() + "/health")
+			if err != nil {
+				if i == 9 {
+					return xerrors.Errorf("face_mediapipe: health check: %w", err)
+				}
+				time.Sleep(3 * time.Second)
+				continue
+			}
+			_ = resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				if i == 9 {
+					return xerrors.New("face_mediapipe: health check failed")
+				}
+				time.Sleep(3 * time.Second)
+				continue
+			}
+			return nil
+		}
+		return xerrors.New("face_mediapipe: health check failed")
 	}
+
+	cmd := exec.CommandContext(ctx, "uv", "run", cfg.ScriptName, "--serve", "--port", strconv.Itoa(cfg.ServerPort))
+	cmd.Dir = cfg.ScriptBasePath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
 	if err := cmd.Start(); err != nil {
 		return xerrors.Errorf("face_mediapipe: start: %w", err)
 	}
 
 	for i := 0; i < 10; i++ {
-		resp, err := http.Get(config.Get().FaceDetectServer.ServerURL() + "/health")
+		resp, err := http.Get(cfg.ServerURL() + "/health")
 		if err != nil {
 			if i == 9 {
 				return xerrors.Errorf("face_mediapipe: health check: %w", err)
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(3 * time.Second)
 			continue
 		}
 		_ = resp.Body.Close()
@@ -45,7 +64,7 @@ func StartFaceDetectServer(ctx context.Context) error {
 			if i == 9 {
 				return xerrors.New("face_mediapipe: health check failed")
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(3 * time.Second)
 			continue
 		}
 		break

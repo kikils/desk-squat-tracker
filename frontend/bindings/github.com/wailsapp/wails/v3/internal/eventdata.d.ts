@@ -12,6 +12,7 @@ import type * as app$0 from "../../../../kikils/desk-squat-tracker/internal/infr
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
+            "cameraPreview": string;
             "face": app$0.FaceViewModel | null;
             "squat": number;
             "time": string;

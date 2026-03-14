@@ -1,6 +1,10 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"cloud.google.com/go/civil"
+)
 
 type DetectState int
 
@@ -21,6 +25,10 @@ type Judgement struct {
 	Timestamp      time.Time
 	State          DetectState
 	IsRepCompleted bool
+}
+
+func (j *Judgement) Date() civil.Date {
+	return civil.DateOf(j.Timestamp)
 }
 
 type Judgements []*Judgement

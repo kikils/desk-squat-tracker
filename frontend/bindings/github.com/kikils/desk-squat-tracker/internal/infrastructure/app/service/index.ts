@@ -3,7 +3,15 @@
 
 import * as CameraService from "./cameraservice.js";
 import * as GreetService from "./greetservice.js";
+import * as SettingsService from "./settingsservice.js";
+import * as StatsService from "./statsservice.js";
 export {
     CameraService,
-    GreetService
+    GreetService,
+    SettingsService,
+    StatsService
 };
+
+export {
+    CameraDevice
+} from "./models.js";
