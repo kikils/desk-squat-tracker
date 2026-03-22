@@ -125,16 +125,17 @@ tasks:
   package:
     summary: Packages the application into a `.app` bundle
     deps:
+      # `build` already runs `common:build:python:binary`; do not list it again or Nuitka
+      # runs twice against helper/dist and hits writeSourceCode duplicate-file asserts.
       - task: build
-      - task: common:build:python:binary
     cmds:
       - task: create:app:bundle
 
   package:universal:
     summary: Packages darwin universal binary (arm64 + amd64)
     deps:
+      # Same as `package`: `build:universal` runs `build` per arch, each including the Python binary.
       - task: build:universal
-      - task: common:build:python:binary
     cmds:
       - task: create:app:bundle
 

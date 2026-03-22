@@ -15,6 +15,14 @@ bash scripts/sync_uv_venv.sh --extra dev
 MP_MOD="$(./.venv/bin/python -c "import mediapipe, pathlib; print(pathlib.Path(mediapipe.__file__).resolve().parent / 'modules')")"
 
 mkdir -p "$OUT_DIR"
+# Nuitka leaves *.build / *.onefile-build under output-dir; a second run without removing them
+# can assert in writeSourceCode (file already exists). Universal builds also invoke this twice.
+rm -rf \
+  "$OUT_DIR/face_detect_mediapipe.build" \
+  "$OUT_DIR/face_detect_mediapipe.dist" \
+  "$OUT_DIR/face_detect_mediapipe.onefile-build" \
+  "$OUT_DIR/face_detect"
+
 ./.venv/bin/python -m nuitka --mode=onefile --follow-imports \
   --nofollow-import-to=tkinter \
   --nofollow-import-to=_tkinter \
