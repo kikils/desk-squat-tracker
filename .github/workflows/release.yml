@@ -44,7 +44,7 @@ jobs:
             -productversion "$VERSION"
 
       - name: Package macOS .app
-        run: go tool wails3 package
+        run: go tool wails3 task darwin:package:universal
 
       - name: Create archive and checksums
         id: bundle

@@ -352,6 +352,33 @@ body.camera-page-active {
   box-shadow: var(--focus-ring);
 }
 
+.app-quit-btn--exit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.app-quit-btn--exit:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+.app-quit-btn__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.app-quit-btn__icon {
+  display: block;
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+.app-quit-btn__label {
+  line-height: 1.2;
+}
+
 .app-quit-confirm {
   display: flex;
   flex-direction: column;
