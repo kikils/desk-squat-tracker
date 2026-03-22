@@ -318,6 +318,80 @@ body.camera-page-active {
   border-color: var(--accent);
 }
 
+/* Footer — quit (full app exit) */
+.app-footer {
+  width: 320px;
+  max-width: 100%;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+.app-quit-btn {
+  width: 100%;
+  height: 36px;
+  padding: 0 1rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color var(--duration-fast), background-color var(--duration-fast),
+    border-color var(--duration-fast), box-shadow var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.app-quit-btn:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+.app-quit-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.app-quit-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.app-quit-confirm__msg {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  text-align: center;
+}
+.app-quit-confirm__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.app-quit-confirm__actions .app-quit-btn {
+  flex: 1;
+}
+.app-quit-btn--secondary {
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.app-quit-btn--secondary:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border-color: var(--text-muted);
+}
+.app-quit-btn--danger {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+}
+.app-quit-btn--danger:hover {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.35);
+  border-color: var(--error);
+}
+
 /* Card — summary page only */
 .card {
   width: 100%;

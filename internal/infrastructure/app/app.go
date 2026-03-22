@@ -57,6 +57,7 @@ func Run(assets fs.FS, iconStandup, iconSquat []byte) error {
 		Description: "A demo of using raw HTML & CSS",
 		Services: []application.Service{
 			application.NewService(&service.GreetService{}),
+			application.NewService(&service.AppService{}),
 			application.NewService(cameraSvc),
 			application.NewService(statsSvc),
 			application.NewService(settingsSvc),
@@ -71,6 +72,8 @@ func Run(assets fs.FS, iconStandup, iconSquat []byte) error {
 			ActivationPolicy: application.ActivationPolicyAccessory,
 		},
 	})
+
+	app.OnShutdown(python.StopFaceDetectServer)
 
 	systray := app.SystemTray.New()
 	systray.SetIcon(iconStandup)

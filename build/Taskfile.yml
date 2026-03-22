@@ -7,6 +7,21 @@ tasks:
     cmds:
       - go mod tidy
 
+  install:python:deps:
+    summary: Install Python (face detection) dependencies with uv
+    dir: helper
+    sources:
+      - pyproject.toml
+      - uv.lock
+      - scripts/sync_uv_venv.sh
+    generates:
+      - .venv
+    preconditions:
+      - sh: uv --version
+        msg: "uv is required for Python deps. Install: https://docs.astral.sh/uv/getting-started/installation/"
+    cmds:
+      - bash scripts/sync_uv_venv.sh
+
   install:frontend:deps:
     summary: Install frontend dependencies
     dir: frontend
@@ -142,8 +157,38 @@ tasks:
     summary: Builds and runs the application in server mode
     deps:
       - task: build:server
+      - task: install:python:deps
     cmds:
       - ./{{.BIN_DIR}}/{{.APP_NAME}}-server{{exeExt}}
+
+  run:face:server:
+    summary: Runs the face detection server only (for development/debug)
+    desc: |
+      Starts the MediaPipe face detection HTTP server on port 8765.
+      The main app starts this automatically; use this to run it standalone.
+    dir: helper
+    deps:
+      - task: install:python:deps
+    cmds:
+      - uv run face_detect_mediapipe.py --serve --port {{.FACE_SERVER_PORT | default "8765"}}
+    vars:
+      FACE_SERVER_PORT: "{{.FACE_SERVER_PORT}}"
+
+  build:python:binary:
+    summary: Builds the face detection script into a single native binary (Nuitka)
+    desc: |
+      Compiles helper/face_detect_mediapipe.py to helper/dist/face_detect (see build/scripts/build_face_detect.sh).
+    dir: helper
+    sources:
+      - face_detect_mediapipe.py
+      - pyproject.toml
+      - uv.lock
+      - ../build/scripts/build_face_detect.sh
+      - scripts/sync_uv_venv.sh
+    generates:
+      - dist/face_detect
+    cmds:
+      - bash ../build/scripts/build_face_detect.sh
 
   build:docker:
     summary: Builds a Docker image for server mode deployment

@@ -8,5 +8,13 @@ dependencies = [
     "opencv-python-headless>=4.13.0.92",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "nuitka[onefile]>=2.0",
+]
+
 [tool.uv]
-required-environments = ["sys_platform == 'darwin' and platform_machine == 'x86_64'"]
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]

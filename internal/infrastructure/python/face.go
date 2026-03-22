@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/kikils/desk-squat-tracker/internal/config"
@@ -17,60 +19,120 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func StartFaceDetectServer(ctx context.Context) error {
+const healthRetries = 10
+const healthRetryDelay = 3 * time.Second
+
+var (
+	faceChildMu sync.Mutex
+	faceChild   *exec.Cmd
+)
+
+func StopFaceDetectServer() {
+	faceChildMu.Lock()
+	cmd := faceChild
+	faceChild = nil
+	faceChildMu.Unlock()
+	if cmd == nil || cmd.Process == nil {
+		return
+	}
+	faceChildKill(cmd)
+	_ = cmd.Wait()
+}
+
+func StartFaceDetectServer(ctx context.Context) (err error) {
 	cfg := config.Get().FaceDetectServer
 	if !cfg.Debug {
-		for i := 0; i < 10; i++ {
-			resp, err := http.Get(cfg.ServerURL() + "/health")
-			if err != nil {
-				if i == 9 {
-					return xerrors.Errorf("face_mediapipe: health check: %w", err)
-				}
-				time.Sleep(3 * time.Second)
-				continue
-			}
-			_ = resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				if i == 9 {
-					return xerrors.New("face_mediapipe: health check failed")
-				}
-				time.Sleep(3 * time.Second)
-				continue
-			}
-			return nil
-		}
-		return xerrors.New("face_mediapipe: health check failed")
+		return waitFaceDetectHealth(cfg.ServerURL() + "/health")
 	}
 
-	cmd := exec.CommandContext(ctx, "uv", "run", cfg.ScriptName, "--serve", "--port", strconv.Itoa(cfg.ServerPort))
-	cmd.Dir = cfg.ScriptBasePath
+	cmd, err := buildFaceDetectCmd(ctx, cfg)
+	if err != nil {
+		return err
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
 		return xerrors.Errorf("face_mediapipe: start: %w", err)
 	}
-
-	for i := 0; i < 10; i++ {
-		resp, err := http.Get(cfg.ServerURL() + "/health")
+	faceChildMu.Lock()
+	faceChild = cmd
+	faceChildMu.Unlock()
+	defer func() {
 		if err != nil {
-			if i == 9 {
+			StopFaceDetectServer()
+		}
+	}()
+
+	err = waitFaceDetectHealth(cfg.ServerURL() + "/health")
+	return err
+}
+
+func buildFaceDetectCmd(ctx context.Context, cfg config.FaceDetectServer) (*exec.Cmd, error) {
+	var cmd *exec.Cmd
+	if p := resolveBundledFaceDetect(); p != "" {
+		cmd = exec.CommandContext(ctx, p, "--serve", "--port", strconv.Itoa(cfg.ServerPort))
+		cmd.Dir = filepath.Dir(p)
+	} else {
+		helperDir, err := resolveHelperDirNextToBin()
+		if err != nil {
+			return nil, xerrors.Errorf("face_mediapipe: helper dir: %w", err)
+		}
+		cmd = exec.CommandContext(ctx, "uv", "run", cfg.ScriptName, "--serve", "--port", strconv.Itoa(cfg.ServerPort))
+		cmd.Dir = helperDir
+	}
+	faceChildPrepare(cmd)
+	return cmd, nil
+}
+
+func waitFaceDetectHealth(healthURL string) error {
+	for i := 0; i < healthRetries; i++ {
+		resp, err := http.Get(healthURL)
+		if err != nil {
+			if i == healthRetries-1 {
 				return xerrors.Errorf("face_mediapipe: health check: %w", err)
 			}
-			time.Sleep(3 * time.Second)
+			time.Sleep(healthRetryDelay)
 			continue
 		}
 		_ = resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			if i == 9 {
+			if i == healthRetries-1 {
 				return xerrors.New("face_mediapipe: health check failed")
 			}
-			time.Sleep(3 * time.Second)
+			time.Sleep(healthRetryDelay)
 			continue
 		}
-		break
+		return nil
 	}
+	return xerrors.New("face_mediapipe: health check failed")
+}
 
-	return nil
+func resolveBundledFaceDetect() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	p := filepath.Join(filepath.Dir(exe), "face_detect")
+	if _, err := os.Stat(p); err != nil {
+		return ""
+	}
+	return p
+}
+
+func resolveHelperDirNextToBin() (string, error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	helper := filepath.Join(filepath.Dir(exe), "..", "helper")
+	abs, err := filepath.Abs(helper)
+	if err != nil {
+		return "", err
+	}
+	if _, err := os.Stat(abs); err != nil {
+		return "", err
+	}
+	return abs, nil
 }
 
 type MediaPipeFaceRepository struct {

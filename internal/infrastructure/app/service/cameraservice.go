@@ -33,6 +33,7 @@ type CameraService struct {
 
 	mu            sync.Mutex
 	captureCancel context.CancelFunc
+	captureGen    int // incremented per StartCapture; used to avoid clearing a newer capture's cancel
 }
 
 func (s *CameraService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
@@ -61,6 +62,8 @@ func (s *CameraService) StartCapture(deviceIndex int) error {
 		return nil
 	}
 	ctx, cancel := context.WithCancel(s.ctx)
+	s.captureGen++
+	gen := s.captureGen
 	s.captureCancel = cancel
 	s.mu.Unlock()
 
@@ -76,7 +79,7 @@ func (s *CameraService) StartCapture(deviceIndex int) error {
 	go func() {
 		defer func() {
 			s.mu.Lock()
-			if s.captureCancel == cancel {
+			if s.captureGen == gen {
 				s.captureCancel = nil
 			}
 			s.mu.Unlock()

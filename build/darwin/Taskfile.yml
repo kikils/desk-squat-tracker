@@ -38,6 +38,7 @@ tasks:
           DEV:
             ref: .DEV
       - task: common:generate:icons
+      - task: common:build:python:binary
     cmds:
       - go build {{.BUILD_FLAGS}} -o {{.OUTPUT}}
     vars:
@@ -125,6 +126,7 @@ tasks:
     summary: Packages the application into a `.app` bundle
     deps:
       - task: build
+      - task: common:build:python:binary
     cmds:
       - task: create:app:bundle
 
@@ -132,6 +134,7 @@ tasks:
     summary: Packages darwin universal binary (arm64 + amd64)
     deps:
       - task: build:universal
+      - task: common:build:python:binary
     cmds:
       - task: create:app:bundle
 
@@ -147,6 +150,7 @@ tasks:
           cp build/darwin/Assets.car "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources"
         fi
       - cp "{{.BIN_DIR}}/{{.APP_NAME}}" "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS"
+      - cp helper/dist/face_detect "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS/face_detect"
       - cp build/darwin/Info.plist "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents"
       - task: '{{if eq OS "darwin"}}codesign:adhoc{{else}}codesign:skip{{end}}'
 
@@ -172,6 +176,10 @@ tasks:
           cp build/darwin/Assets.car "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/Resources"
         fi
       - cp "{{.BIN_DIR}}/{{.APP_NAME}}" "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/MacOS"
+      - |
+        if [ -f helper/dist/face_detect ]; then
+          cp helper/dist/face_detect "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/MacOS/face_detect"
+        fi
       - cp "build/darwin/Info.dev.plist" "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/Info.plist"
       - codesign --force --deep --sign - "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app"
       - '{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/MacOS/{{.APP_NAME}}'

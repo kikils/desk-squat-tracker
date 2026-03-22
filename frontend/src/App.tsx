@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Events, WML } from "@wailsio/runtime";
-import { CameraService, SettingsService, StatsService, type CameraDevice } from "../bindings/github.com/kikils/desk-squat-tracker/internal/infrastructure/app/service";
+import { AppService, CameraService, SettingsService, StatsService, type CameraDevice } from "../bindings/github.com/kikils/desk-squat-tracker/internal/infrastructure/app/service";
 import { useCameraStream } from "./hooks/useCameraStream";
 
 export interface FaceDetectedPayload {
@@ -33,6 +33,7 @@ function App() {
   const [draggingLine, setDraggingLine] = useState<'top' | 'bottom' | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [selectedCameraIndex, setSelectedCameraIndex] = useState(0);
+  const [quitConfirmOpen, setQuitConfirmOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const ratiosRef = useRef({ topRatio: 0.7, bottomRatio: 0.6 });
   const lastRatiosRef = useRef({ topRatio: 0.7, bottomRatio: 0.6 });
@@ -216,6 +217,19 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (!quitConfirmOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setQuitConfirmOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [quitConfirmOpen]);
+
+  const handleQuitConfirm = () => {
+    AppService.Quit().catch((err) => console.warn('Quit error:', err));
+  };
+
   return (
     <>
       <a href="#main" className="skip-link">
@@ -392,6 +406,41 @@ function App() {
             </section>
           )}
         </main>
+
+        <footer className="app-footer">
+          {!quitConfirmOpen ? (
+            <button
+              type="button"
+              className="app-quit-btn"
+              onClick={() => setQuitConfirmOpen(true)}
+              aria-label="アプリを終了する"
+            >
+              アプリを終了
+            </button>
+          ) : (
+            <div className="app-quit-confirm" role="group" aria-label="アプリ終了の確認">
+              <p className="app-quit-confirm__msg" id="quit-confirm-desc">
+                終了しますか？メニューバー／トレイからも消えます。
+              </p>
+              <div className="app-quit-confirm__actions" aria-describedby="quit-confirm-desc">
+                <button
+                  type="button"
+                  className="app-quit-btn app-quit-btn--secondary"
+                  onClick={() => setQuitConfirmOpen(false)}
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  className="app-quit-btn app-quit-btn--danger"
+                  onClick={handleQuitConfirm}
+                >
+                  終了する
+                </button>
+              </div>
+            </div>
+          )}
+        </footer>
       </div>
     </>
   );
