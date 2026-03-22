@@ -33,6 +33,16 @@ jobs:
       - name: go tool install
         run: go install tool
 
+      - name: Regenerate build assets (version from release tag)
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          go tool wails3 update build-assets \
+            -name desk-squat-tracker \
+            -binaryname desk-squat-tracker \
+            -config build/config.yml \
+            -dir build \
+            -productversion "$VERSION"
+
       - name: Package macOS .app
         run: go tool wails3 package
 
