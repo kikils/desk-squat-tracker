@@ -10,7 +10,15 @@ permissions:
 
 jobs:
   macos-app:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: amd64
+          - runner: macos-latest
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -44,20 +52,39 @@ jobs:
             -productversion "$VERSION"
 
       - name: Package macOS .app
-        run: go tool wails3 task darwin:package:universal
+        run: go tool wails3 task darwin:package
 
       - name: Create archive and checksums
         id: bundle
         run: |
           VERSION="${{ github.ref_name }}"
-          ZIP="desk-squat-tracker-${VERSION}.zip"
+          ZIP="desk-squat-tracker-${VERSION}-macos-${{ matrix.arch }}.zip"
           ditto -c -k --keepParent "bin/desk-squat-tracker.app" "$ZIP"
           shasum -a 256 "$ZIP" | tee "${ZIP}.sha256"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-macos-${{ matrix.arch }}
+          path: |
+            desk-squat-tracker-${{ github.ref_name }}-macos-${{ matrix.arch }}.zip
+            desk-squat-tracker-${{ github.ref_name }}-macos-${{ matrix.arch }}.zip.sha256
+
+  publish-release:
+    needs: [macos-app]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          path: release-assets
+          merge-multiple: true
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         with:
           files: |
-            desk-squat-tracker-${{ github.ref_name }}.zip
-            desk-squat-tracker-${{ github.ref_name }}.zip.sha256
+            release-assets/*.zip
+            release-assets/*.sha256
           generate_release_notes: true
