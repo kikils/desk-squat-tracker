@@ -23,6 +23,8 @@
             <string>10.15.0</string>
         <key>NSHighResolutionCapable</key>
             <string>true</string>
+        <key>NSCameraUsageDescription</key>
+            <string>スクワット検知のためにカメラ映像を使用します。</string>
         <key>NSHumanReadableCopyright</key>
             <string>© 2026, My Company</string>
         <key>NSAppTransportSecurity</key>
